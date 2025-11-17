@@ -1,0 +1,72 @@
+# ==========================================
+# 🛍️ Mall Customer Segmentation using K-Means
+# ==========================================
+
+# 📌 Import Libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+
+# 📌 Load Dataset
+df = pd.read_csv("Mall_Customers.csv")
+
+# Show first few rows
+print("\n📍 Dataset Preview:\n")
+print(df.head())
+
+# 📌 Select Features for Clustering
+X = df[['Annual Income (k$)', 'Spending Score (1-100)']]
+
+# 📌 Feature Scaling
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 📌 Elbow Method to find optimal K
+inertia = []
+k_range = range(1, 11)
+
+for k in k_range:
+    km = KMeans(n_clusters=k, random_state=42)
+    km.fit(X_scaled)
+    inertia.append(km.inertia_)
+
+plt.figure(figsize=(6,4))
+plt.plot(k_range, inertia, marker='o')
+plt.title("Elbow Method for Optimal K")
+plt.xlabel("Number of Clusters")
+plt.ylabel("Inertia")
+plt.show()
+
+# 📌 Train K-Means with optimal K (usually K=5)
+kmeans = KMeans(n_clusters=5, random_state=42)
+cluster_labels = kmeans.fit_predict(X_scaled)
+
+# Add labels to dataset
+df['Cluster'] = cluster_labels
+
+print("\n📍 Clustered Data Preview:\n")
+print(df.head())
+
+# 📌 Visualize Clusters
+plt.figure(figsize=(7,5))
+plt.scatter(X_scaled[:, 0], X_scaled[:, 1], c=df['Cluster'], s=60)
+plt.title("Customer Segmentation using K-Means")
+plt.xlabel("Annual Income (Standardized)")
+plt.ylabel("Spending Score (Standardized)")
+plt.show()
+
+# 📌 Show cluster centroids
+print("\n📍 Cluster Centers (Scaled Values):\n")
+print(kmeans.cluster_centers_)
+
+# 📌 Interpretation Example
+print("\n📍 Interpretation Guide:")
+print("""
+Cluster 0 → High income | High spending (Premium Customers)
+Cluster 1 → Low income | Low spending
+Cluster 2 → High income | Low spending
+Cluster 3 → Low income | High spending
+Cluster 4 → Middle income | Moderate spending
+""")
